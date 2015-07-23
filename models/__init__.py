@@ -20,10 +20,12 @@ def prepare_text_pos(text):
 
 
 def prepare_text(text):
-    return [re.findall(r"[\w']+|[.,!?;]", sent) for sent in nltk.sent_tokenize(text.lower())]
+    return [sent.split() for sent in nltk.sent_tokenize(text.lower())]
 
 
 def combine_sentence(words):
+    if words is None or len(words) < 1:
+        return ""
     sent = words[0]
     for word in words[1:]:
         if word in string.punctuation:
@@ -112,26 +114,26 @@ class TrigramBackoffLM(LanguageModel):
         try:
             self.trigrams[trigram] += 1
         except KeyError:
-            self.trigrams[trigram] = 1
+            self.trigrams[trigram] = 2
 
     def _insert_unigram(self, unigram):
         self.n_unigram += 1
         try:
             self.unigrams[unigram] += 1
         except KeyError:
-            self.unigrams[unigram] = 1
+            self.unigrams[unigram] = 2
 
     def _insert_bigram(self, bigram):
         self.n_bigram += 1
         try:
             self.bigrams[bigram] += 1
         except KeyError:
-            self.bigrams[bigram] = 1
+            self.bigrams[bigram] = 2
 
     def _train_one_sentence(self, sent):
         words = ["!BEGIN!", "!BEGIN!"] + sent + ["!END!"]
         for i in range(len(words) - 2):
-            self._insert_trigram((words[i], words[i+1], words[i+2]))
+            self._insert_trigram((words[i], words[i + 1], words[i + 2]))
         for i in range(len(words) - 1):
             self._insert_bigram((words[i], words[i + 1]))
         # Don't need beginning or end tokens
