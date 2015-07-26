@@ -7,10 +7,12 @@ __maintainer__ = "Cameron Palone"
 __email__ = "cam@cpalone.me"
 __status__ = "Prototype"
 
-import pickle
+import argparse
 import json
-import time
 import logging
+import pickle
+import time
+import sys
 
 from websocket import create_connection, WebSocketConnectionClosedException, WebSocketException
 
@@ -24,7 +26,7 @@ class MarkovBot:
             self.model_path = model_path
         else:
             self.model = models.TrigramBackoffLM()
-            self.model_path = "MarkovBot.pickle"
+            self.model_path = room + ".pickle"
 
         self.msg_id = 0
         self.room = room
@@ -114,7 +116,18 @@ class MarkovBot:
                 self._dispatch(packet)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run an instance of MarkovBot.")
+    parser.add_argument("-m", type=str, help="path to use for model storage")
+    parser.add_argument("-p", type=str, help="optional password for the room")
+    parser.add_argument("room", type=str,help="room to run bot in")
+    args = parser.parse_args()
+
+    non_none_args = {"room": args.room}
+    if args.m is not None:
+        non_none_args["model_path"] = args.m
+    if args.p is not None:
+        non_none_args["password"] = args.p
     logging.basicConfig(level=logging.DEBUG)
     logging.info("Starting up.")
-    bot = MarkovBot(room="test")
+    bot = MarkovBot(**non_none_args)
     bot.run()
