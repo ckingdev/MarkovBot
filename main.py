@@ -12,7 +12,6 @@ import json
 import logging
 import pickle
 import time
-import sys
 
 from websocket import create_connection, WebSocketConnectionClosedException, WebSocketException
 
