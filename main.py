@@ -21,8 +21,11 @@ import models
 class MarkovBot:
     def __init__(self, model_path=None, room="test", password=None):
         if model_path is not None:
-            with open(model_path) as f:
-                self.model = pickle.load(f)
+            try:
+                with open(model_path, "rb") as f:
+                    self.model = pickle.load(f)
+            except FileNotFoundError:
+                pass
             self.model_path = model_path
         else:
             self.model = models.TrigramBackoffLM()
