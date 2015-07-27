@@ -9,19 +9,25 @@ __status__ = "Prototype"
 
 import pickle
 import random
-import re
 import string
 
 import nltk
-
 
 def prepare_text_pos(text):
     return [nltk.pos_tag(nltk.word_tokenize(sent)) for sent in nltk.sent_tokenize(text.lower())]
 
 
-def prepare_text(text):
-    return [sent.split() for sent in nltk.sent_tokenize(text.lower())]
+def prepare_text(text, word_list=None):
+    """
 
+    :type word_list: set
+    """
+    sents = []
+    for sent in nltk.sent_tokenize(text):
+        words = sent.split()
+        processed = [word.lower() if word_list is not None and word.lower() in word_list else word for word in words]
+        sents.append(processed)
+    return sents
 
 def combine_sentence(words):
     if words is None or len(words) < 1:
@@ -46,9 +52,9 @@ class LanguageModel:
     def _train_one_sentence(self, sent):
         raise NotImplementedError
 
-    def update(self, lines):
+    def update(self, lines, word_list):
         for line in lines:
-            for sent in prepare_text(line):
+            for sent in prepare_text(line, word_list=word_list):
                 self._train_one_sentence(sent)
 
 

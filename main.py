@@ -15,6 +15,7 @@ import time
 
 from websocket import create_connection, WebSocketConnectionClosedException, WebSocketException
 
+import data
 import models
 
 class MarkovBot:
@@ -30,6 +31,7 @@ class MarkovBot:
             self.model = models.TrigramBackoffLM()
             self.model_path = room + ".pickle"
 
+        self.word_list = data.load_word_list()
         self.msg_id = 0
         self.room = room
         self.password = password
@@ -85,7 +87,7 @@ class MarkovBot:
     def _handle_send_event(self, packet):
         logging.debug("Received send-event.")
         if packet["data"]["content"][0] != "!" and packet["data"]["sender"] != "MaiMai":
-            self.model.update([packet["data"]["content"]])
+            self.model.update([packet["data"]["content"]], self.word_list)
         elif packet["data"]["content"].startswith("!generate"):
             logging.info("Generating a sentence...")
             self._send_message(self.model.generate(), packet["data"]["id"])
