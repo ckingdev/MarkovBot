@@ -86,7 +86,7 @@ class MarkovBot:
 
     def _handle_send_event(self, packet):
         logging.debug("Received send-event.")
-        if packet["data"]["content"][0] != "!" and packet["data"]["sender"] != "MaiMai":
+        if packet["data"]["content"][0] != "!" and packet["data"]["sender"]["name"] != "MaiMai":
             self.model.update([packet["data"]["content"]], self.word_list)
         elif packet["data"]["content"].startswith("!generate"):
             logging.info("Generating a sentence...")
