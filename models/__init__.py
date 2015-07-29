@@ -13,21 +13,14 @@ import string
 
 import nltk
 
+
 def prepare_text_pos(text):
     return [nltk.pos_tag(nltk.word_tokenize(sent)) for sent in nltk.sent_tokenize(text.lower())]
 
 
-def prepare_text(text, word_list=None):
-    """
+def prepare_text(text):
+    return [sent.split() for sent in nltk.sent_tokenize(text.lower())]
 
-    :type word_list: set
-    """
-    sents = []
-    for sent in nltk.sent_tokenize(text):
-        words = sent.split()
-        processed = [word.lower() if word_list is not None and word.lower() in word_list else word for word in words]
-        sents.append(processed)
-    return sents
 
 def combine_sentence(words):
     if words is None or len(words) < 1:
@@ -52,9 +45,9 @@ class LanguageModel:
     def _train_one_sentence(self, sent):
         raise NotImplementedError
 
-    def update(self, lines, word_list):
+    def update(self, lines):
         for line in lines:
-            for sent in prepare_text(line, word_list=word_list):
+            for sent in prepare_text(line):
                 self._train_one_sentence(sent)
 
 
@@ -114,6 +107,7 @@ class TrigramBackoffLM(LanguageModel):
         self.n_bigram = 0
         self.n_unigram = 0
         self.n_trigram = 0
+        self.p = {}
 
     def _insert_trigram(self, trigram):
         self.n_trigram += 1
@@ -143,17 +137,17 @@ class TrigramBackoffLM(LanguageModel):
         for i in range(len(words) - 1):
             self._insert_bigram((words[i], words[i + 1]))
         # Don't need beginning or end tokens
-        for word in words[1:]:
+        for word in words[2:]:
             self._insert_unigram(word)
 
-    def _p_unigram(self, cand):
-        if cand not in self.unigrams:
+    def _p_unigram(self, word):
+        if word not in self.unigrams:
             return 0.
-        return self.unigrams[cand] / self.n_unigram
+        return self.unigrams[word] / float(self.n_unigram)
 
     def _p_bigram(self, prev_word, cand):
         if (prev_word, cand) not in self.bigrams:
-            return None
+            return 0.
         bi_c = self.bigrams[(prev_word, cand)]
         # TODO : Use Good-Turing estimation
         d = 1.
@@ -170,18 +164,16 @@ class TrigramBackoffLM(LanguageModel):
         d = 1.
         return d * float(tri_c) / bi_c
 
+    def _gen_probabilities(self):
+        pass
+
     def _generate_word(self, prev_bigram):
         bi_cand = {}
         tri_cand = {}
-        uni_cand = {}
         for word in self.unigrams:
             tri = self._p_trigram(prev_bigram, word)
             if tri is None:
-                bi = self._p_bigram(prev_bigram[1], word)
-                if bi is None:
-                    uni_cand[word] = self._p_unigram(word)
-                else:
-                    bi_cand[word] = bi
+                bi_cand[word] = self._p_bigram(prev_bigram[1], word)
             else:
                 tri_cand[word] = tri
         beta = 1 - sum(tri_cand.values())

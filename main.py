@@ -135,3 +135,8 @@ if __name__ == "__main__":
     logging.info("Starting up.")
     bot = MarkovBot(**non_none_args)
     bot.run()
+    # bot = models.TrigramBackoffLM()
+    # with open("data/space_log.json") as f:
+    #     log = json.load(f)
+    # bot.update(log)
+    # bot.save("space_log.pickle")
