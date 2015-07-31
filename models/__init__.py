@@ -21,6 +21,8 @@ def prepare_text_pos(text):
 def prepare_text(text):
     return [sent.split() for sent in nltk.sent_tokenize(text.lower())]
 
+def prepare_text_wl(text, word_list):
+    return [[word.lower() if word in word_list else word for word in sent.split()] for sent in nltk.sent_tokenize(text)]
 
 def combine_sentence(words):
     if words is None or len(words) < 1:
@@ -45,9 +47,9 @@ class LanguageModel:
     def _train_one_sentence(self, sent):
         raise NotImplementedError
 
-    def update(self, lines):
+    def update(self, lines, word_list):
         for line in lines:
-            for sent in prepare_text(line):
+            for sent in prepare_text_wl(line, word_list):
                 self._train_one_sentence(sent)
 
 

@@ -120,23 +120,24 @@ class MarkovBot:
                 self._dispatch(packet)
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser(description="Run an instance of MarkovBot.")
-    # parser.add_argument("-m", type=str, help="path to use for model storage")
-    # parser.add_argument("-p", type=str, help="optional password for the room")
-    # parser.add_argument("room", type=str,help="room to run bot in")
-    # args = parser.parse_args()
-    #
-    # non_none_args = {"room": args.room}
-    # if args.m is not None:
-    #     non_none_args["model_path"] = args.m
-    # if args.p is not None:
-    #     non_none_args["password"] = args.p
-    # logging.basicConfig(level=logging.DEBUG)
-    # logging.info("Starting up.")
-    # bot = MarkovBot(**non_none_args)
-    # bot.run()
-    bot = models.TrigramBackoffLM()
-    with open("data/space_log.json", "rb") as f:
-        log = json.load(f)
-    bot.update(log)
-    bot.save("space_log.pickle")
+    parser = argparse.ArgumentParser(description="Run an instance of MarkovBot.")
+    parser.add_argument("-m", type=str, help="path to use for model storage")
+    parser.add_argument("-p", type=str, help="optional password for the room")
+    parser.add_argument("room", type=str,help="room to run bot in")
+    args = parser.parse_args()
+
+    non_none_args = {"room": args.room}
+    if args.m is not None:
+        non_none_args["model_path"] = args.m
+    if args.p is not None:
+        non_none_args["password"] = args.p
+    logging.basicConfig(level=logging.DEBUG)
+    logging.info("Starting up.")
+    bot = MarkovBot(**non_none_args)
+    bot.run()
+    # bot = models.TrigramBackoffLM()
+    # with open("data/space_log.json", "r") as f:
+    #     log = json.load(f)
+    # word_list = data.load_word_list()
+    # bot.update(log, word_list)
+    # bot.save("space_log.pickle")
