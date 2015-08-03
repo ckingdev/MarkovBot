@@ -56,7 +56,10 @@ class MarkovBot:
         except WebSocketConnectionClosedException:
             time.sleep(3)
             logging.warning("Connection closed. Attempting reconnect.")
-            self._connect_and_auth()
+            try:
+                self._connect_and_auth()
+            except WebSocketException:
+                return self._send_packet(packet)
             return self._send_packet(packet)
 
     def _auth(self):
