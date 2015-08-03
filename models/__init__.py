@@ -24,20 +24,20 @@ def prepare_text(text):
 
 
 def prepare_text_wl(text, word_list):
-    return [[(tkn[0].lower(), tkn[1]) if tkn[0] in word_list else tkn for
-             tkn in nltk.pos_tag(sent.split())]
+    return [[tkn.lower() if tkn in word_list else tkn for
+             tkn in sent.split()]
             for sent in nltk.sent_tokenize(text)]
 
 
 def combine_sentence(words):
     if words is None or len(words) < 1:
         return ""
-    sent = words[0][0]
+    sent = words[0]
     for word in words[1:]:
-        if word[0] in string.punctuation:
-            sent += word[0]
+        if word in string.punctuation:
+            sent += word
         else:
-            sent += " " + word[0]
+            sent += " " + word
     return sent
 
 
