@@ -14,9 +14,9 @@ __email__ = "cam@cpalone.me"
 __status__ = "Prototype"
 
 
-def prepare_text_pos(text):
-    return [nltk.pos_tag(nltk.word_tokenize(sent)) for sent
-            in nltk.sent_tokenize(text.lower())]
+#def prepare_text_pos(text):
+#    return [nltk.pos_tag(nltk.word_tokenize(sent)) for sent
+#            in nltk.sent_tokenize(text.lower())]
 
 
 def prepare_text(text):
