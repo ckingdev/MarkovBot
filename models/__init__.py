@@ -1,3 +1,9 @@
+import pickle
+import random
+import string
+
+import nltk
+
 __author__ = "Cameron Palone"
 __copyright__ = "Copyright 2015, Cameron Palone"
 __credits__ = ["Cameron Palone"]
@@ -7,36 +13,36 @@ __maintainer__ = "Cameron Palone"
 __email__ = "cam@cpalone.me"
 __status__ = "Prototype"
 
-import pickle
-import random
-import string
-
-import nltk
-
 
 def prepare_text_pos(text):
-    return [nltk.pos_tag(nltk.word_tokenize(sent)) for sent in nltk.sent_tokenize(text.lower())]
+    return [nltk.pos_tag(nltk.word_tokenize(sent)) for sent
+            in nltk.sent_tokenize(text.lower())]
 
 
 def prepare_text(text):
     return [sent.split() for sent in nltk.sent_tokenize(text.lower())]
 
+
 def prepare_text_wl(text, word_list):
-    return [[word.lower() if word in word_list else word for word in sent.split()] for sent in nltk.sent_tokenize(text)]
+    return [[(tkn[0].lower(), tkn[1]) if tkn[0] in word_list else tkn for
+             tkn in nltk.pos_tag(sent.split())]
+            for sent in nltk.sent_tokenize(text)]
+
 
 def combine_sentence(words):
     if words is None or len(words) < 1:
         return ""
-    sent = words[0]
+    sent = words[0][0]
     for word in words[1:]:
-        if word in string.punctuation:
-            sent += word
+        if word[0] in string.punctuation:
+            sent += word[0]
         else:
-            sent += " " + word
+            sent += " " + word[0]
     return sent
 
 
 class LanguageModel:
+
     def save(self, path):
         with open(path, "wb") as f:
             pickle.dump(self, f)
@@ -54,6 +60,7 @@ class LanguageModel:
 
 
 class BigramLM(LanguageModel):
+
     def __init__(self, k=0):
         self.bigrams = {}
         self.unigrams = {}
@@ -77,12 +84,13 @@ class BigramLM(LanguageModel):
             self.bigrams[bigram] = 1
 
     def _train_one_sentence(self, sent):
-        words = ["!BEGIN!"] + sent + ["!END!"]
+        words = [("!BEGIN!", "!BEGIN!")] + sent + [("!END!", "!END!")]
         for i in range(len(words) - 1):
             self._insert_bigram((words[i], words[i + 1]))
 
     def _generate_word(self, prev_word):
-        bigram_candidates = [bigram for bigram in self.bigrams.items() if bigram[0][0] == prev_word]
+        bigram_candidates = [bigram for bigram in self.bigrams.items()
+                             if bigram[0][0] == prev_word]
         n = sum(c for (bigram, c) in bigram_candidates)
         p = [c / float(n) for (bigram, c) in bigram_candidates]
         choice = random.random()
@@ -93,14 +101,15 @@ class BigramLM(LanguageModel):
                 return bigram_candidates[i][0][1]
 
     def generate(self):
-        sentence = ["!BEGIN!"]
-        while sentence[-1] != "!END!":
+        sentence = [("!BEGIN!", "!BEGIN!")]
+        while sentence[-1][0] != "!END!":
             sentence.append(self._generate_word(sentence[-1]))
         words = sentence[1:-1]
         return combine_sentence(words)
 
 
 class TrigramBackoffLM(LanguageModel):
+
     def __init__(self, k=0):
         self.k = k
         self.bigrams = {}

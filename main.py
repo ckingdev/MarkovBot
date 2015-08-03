@@ -1,3 +1,15 @@
+import argparse
+import json
+import logging
+import pickle
+import time
+
+from websocket import create_connection, \
+    WebSocketConnectionClosedException, WebSocketException
+
+import data
+import models
+
 __author__ = "Cameron Palone"
 __copyright__ = "Copyright 2015, Cameron Palone"
 __credits__ = ["Cameron Palone"]
@@ -7,18 +19,9 @@ __maintainer__ = "Cameron Palone"
 __email__ = "cam@cpalone.me"
 __status__ = "Prototype"
 
-import argparse
-import json
-import logging
-import pickle
-import time
-
-from websocket import create_connection, WebSocketConnectionClosedException, WebSocketException
-
-import data
-import models
 
 class MarkovBot:
+
     def __init__(self, model_path=None, room="test", password=None):
         if model_path is not None:
             try:
@@ -39,7 +42,8 @@ class MarkovBot:
         self._connect_and_auth()
 
     def _connect_and_auth(self):
-        self.conn = create_connection("wss://euphoria.io/room/{}/ws".format(self.room))
+        base = "wss://euphoria.io/room/{}/ws"
+        self.conn = create_connection(base.format(self.room))
         if self.password is not None:
             self._auth()
 
@@ -86,7 +90,8 @@ class MarkovBot:
 
     def _handle_send_event(self, packet):
         logging.debug("Received send-event.")
-        if packet["data"]["content"][0] != "!" and packet["data"]["sender"] != "MaiMai":
+        if packet["data"]["content"][0] != "!" and \
+           packet["data"]["sender"] != "MaiMai":
             self.model.update([packet["data"]["content"]], self.word_list)
         elif packet["data"]["content"].startswith("!generate"):
             logging.info("Generating a sentence...")
@@ -120,10 +125,11 @@ class MarkovBot:
                 self._dispatch(packet)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run an instance of MarkovBot.")
+    desc = "Run an instance of MarkovBot."
+    parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("-m", type=str, help="path to use for model storage")
     parser.add_argument("-p", type=str, help="optional password for the room")
-    parser.add_argument("room", type=str,help="room to run bot in")
+    parser.add_argument("room", type=str, help="room to run bot in")
     args = parser.parse_args()
 
     non_none_args = {"room": args.room}
@@ -135,9 +141,3 @@ if __name__ == "__main__":
     logging.info("Starting up.")
     bot = MarkovBot(**non_none_args)
     bot.run()
-    # bot = models.TrigramBackoffLM()
-    # with open("data/space_log.json", "r") as f:
-    #     log = json.load(f)
-    # word_list = data.load_word_list()
-    # bot.update(log, word_list)
-    # bot.save("space_log.pickle")
