@@ -53,12 +53,14 @@ class MarkovBot:
             self.msg_id += 1
             return ret
         # TODO: handle reconnect delays better
-        except WebSocketConnectionClosedException:
+        except WebSocketConnectionClosedException as e:
+            logging.exception(e)
             time.sleep(3)
             logging.warning("Connection closed. Attempting reconnect.")
             try:
                 self._connect_and_auth()
-            except WebSocketException:
+            except WebSocketException as e:
+                logging.exception(e)
                 return self._send_packet(packet)
             return self._send_packet(packet)
 
@@ -117,12 +119,13 @@ class MarkovBot:
             try:
                 rawdata = self.conn.recv()
                 packet = json.loads(rawdata)
-            except WebSocketConnectionClosedException:
+            except WebSocketConnectionClosedException as e:
+                logging.exception(e)
                 time.sleep(3)
                 try:
                     self._connect_and_auth()
                 except WebSocketException as e:
-                    logging.error(e)
+                    logging.exception(e)
                 self._set_nick()
             else:
                 self._dispatch(packet)
@@ -140,7 +143,7 @@ if __name__ == "__main__":
         non_none_args["model_path"] = args.m
     if args.p is not None:
         non_none_args["password"] = args.p
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO, filename=non_none_args["room"]+".log")
     logging.info("Starting up.")
     bot = MarkovBot(**non_none_args)
     bot.run()
