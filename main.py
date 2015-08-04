@@ -101,12 +101,12 @@ class MarkovBot:
             self._send_message(self.model.generate(), packet["data"]["id"])
 
     def _dispatch(self, packet):
-        logging.info("Received packet.")
+        logging.debug("Received packet.")
         if packet["type"] == "ping-event":
-            logging.info("Handling ping-event.")
+            logging.debug("Handling ping-event.")
             self._handle_ping_event(packet)
         elif packet["type"] == "send-event":
-            logging.info("Handling send-event.")
+            logging.debug("Handling send-event.")
             self._handle_send_event(packet)
 
     def run(self):
@@ -140,7 +140,7 @@ if __name__ == "__main__":
         non_none_args["model_path"] = args.m
     if args.p is not None:
         non_none_args["password"] = args.p
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     logging.info("Starting up.")
     bot = MarkovBot(**non_none_args)
     bot.run()
